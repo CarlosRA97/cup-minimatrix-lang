@@ -25,6 +25,8 @@ action code {:
         try {
             double[][] m1 = Matrices.toArray(_m1);
             double[][] m2 = Matrices.toArray(_m2);
+            // System.out.println("<1> "+ o);
+            // System.out.println("<m1> " + Matrices.toArrayList(m1) + "\n<m2> " + Matrices.toArrayList(m2));
             switch (op) {
                 case 0:
                     result = Matrices.producto(m1, m2); 
@@ -33,7 +35,8 @@ action code {:
                     result = Matrices.suma(m1, m2); 
                     break;
             }
-        } catch (Exception e) {
+        } catch (ArrayIndexOutOfBoundsException e) {
+            // System.out.println(e.getMessage());
             printError(4+op);
         } finally {
             mat = newMat();
@@ -138,45 +141,29 @@ non terminal Integer func, op;
 precedence left MAS, MENOS;
 precedence left POR, DIV;
 precedence left COMA, PYC;
-precedence left AP, AC;
 
 
-linea ::= PRINT AP exp:res CP PYC {: 
-            // System.out.println(" After print line: < " + res + " > "); 
-            print(res);
-        :} linea
-        | PRINT AP exp:res CP PYC {: 
-            // System.out.println(" After print line: < " + res + " > "); 
-            print(res);
-        :}
+linea ::= PRINT AP exp:res CP PYC {: print(res); :} linea
+        | PRINT AP exp:res CP PYC {: print(res); :}
         | IDENT:id ASIG exp:res PYC {: TablaSimbolos.insertar(id, Matrices.toArray(res)); :} linea
         | IDENT:id ASIG exp:res PYC {: TablaSimbolos.insertar(id, Matrices.toArray(res)); :}
         ;
 
-exp ::=   mat:m {: RESULT = checkMatrix(m); :}
+exp ::=   AC mat:m CC {: RESULT = checkMatrix(newRow(m)); mat = newMat(); :}
         | func:f AP exp:m1 CP {: RESULT = doFunction(f, m1); :}
         | exp:m1 op:o exp:m2 {: RESULT = doOperation(o, m1, m2); :}
+        | IDENT:n {: RESULT = Matrices.toArrayList(TablaSimbolos.buscar(n)); :}
+        | AP exp:m CP {: RESULT = m; :}
         | AC CC {: System.out.print("Syntax error"); :}
         ;
 
-mat ::=   AC mat:e CC {:
-            var m = newRow(e);
-            // System.out.println("After adding last row: < " + m + " > " );
-            RESULT = m;
-            // System.out.println("Before cleaning matrix: < " + mat + " > ");
-            mat = newMat();
-            // System.out.println("After cleaning matrix: < " + mat + " > ");
-        :}
-        | mat:e1 COMA {: RESULT = e1; :} mat:e2 {: RESULT = e2; :}
+mat ::=   mat:e1 COMA {: RESULT = e1; :} mat:e2 {: RESULT = e2; :}
         | mat:e1 PYC {: RESULT = newRow(e1); :} mat
-        | NUMERO:n {:
-            var m = addRowValue(mat, n);
-            RESULT = m;
-        :}
+        | NUMERO:n {: RESULT = addRowValue(mat, n); :}
         ;
 
 op ::=    MAS {: RESULT = 1; :}
-        | POR {: RESULT = 0; :}
+        | POR {: RESULT = 0; :} 
         ;
 
 func ::=  TRANSPUESTA   {: RESULT = 0; :}
