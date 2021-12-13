@@ -1,0 +1,185 @@
+import java_cup.runtime.*;
+import java.util.ArrayList;
+
+action code {:
+    ArrayList<ArrayList<Double>> mat = new ArrayList();
+    ArrayList<Double> row = new ArrayList();
+
+    ArrayList<ArrayList<Double>> newRow(ArrayList<ArrayList<Double>> m) {
+        m.add(row);
+        row = new ArrayList<>();
+        return m;
+    }
+
+    ArrayList<ArrayList<Double>> addRowValue(ArrayList<ArrayList<Double>> m, double n) {
+        row.add(n);
+        return m;
+    }
+
+    ArrayList<ArrayList<Double>> newMat() {
+        return new ArrayList<>();
+    }
+
+    ArrayList<ArrayList<Double>> doOperation(int op, ArrayList<ArrayList<Double>> _m1, ArrayList<ArrayList<Double>> _m2) {
+        double[][] result = null;
+        try {
+            double[][] m1 = Matrices.toArray(_m1);
+            double[][] m2 = Matrices.toArray(_m2);
+            switch (op) {
+                case 0:
+                    result = Matrices.producto(m1, m2); 
+                    break;
+                case 1:
+                    result = Matrices.suma(m1, m2); 
+                    break;
+            }
+        } catch (Exception e) {
+            printError(4+op);
+        } finally {
+            mat = newMat();
+        }
+        return result != null ? Matrices.toArrayList(result) : null;
+    }
+
+    ArrayList<ArrayList<Double>> doFunction(int op, ArrayList<ArrayList<Double>> _m) {
+        double[][] result = null;
+        try {
+            double[][] m = Matrices.toArray(_m);
+
+            switch (op) {
+                case 0:
+                    result = Matrices.transpuesta(m);
+                    break;
+                case 1:
+                    if (m.length == m[m.length-1].length) {
+                        result = Matrices.inversa(m);
+                    } else {
+                        printError(1+op);
+                    }
+                    break;
+                case 2:
+                    result = Matrices.adjunta(m);
+                    break;
+                default:
+                    break;
+            }
+
+        } catch (ArrayIndexOutOfBoundsException e) {
+            printError(1+op);
+        }
+        return result != null ? Matrices.toArrayList(result) : null;
+    }
+
+    ArrayList<ArrayList<Double>> checkMatrix(ArrayList<ArrayList<Double>> m) {
+
+        mat = newMat();
+        try {
+            if (m.size() == 0) {
+                printError(0);
+                return mat;
+            }
+            return m;
+        } catch (IndexOutOfBoundsException e) {
+            printError(1);
+
+        }
+
+        return mat;
+    }
+
+    void printError(int err) { 
+        String errMsg = "Syntax error";
+        switch (err) {
+            case 1:
+                errMsg = Matrices.ERROR_FILAS;
+                break;
+            case 2:
+                errMsg = Matrices.ERROR_INVERSA;
+                break;
+            case 3:
+                errMsg = Matrices.ERROR_ADJUNTA;
+                break;
+            case 4:
+                errMsg = Matrices.ERROR_PROD;
+                break;
+            case 5:
+                errMsg = Matrices.ERROR_SUMA;
+                break;
+            default:
+                break;
+        }
+        System.out.print(errMsg);
+    }
+
+    void print(double[][] mat) {
+        if (mat != null) {
+            Matrices.print(mat);
+        }
+    }
+
+    void print(ArrayList<ArrayList<Double>> mat) {
+        try {
+            if (mat != null) {
+                Matrices.print(mat);
+            }
+        } catch (Exception e) {
+            printError(1);
+        }
+    }
+:};
+
+terminal ALL, CLL, AP, CP, AC, CC, COMA, PYC, ASIG, MAS, MENOS, POR, DIV, INVERSA, TRANSPUESTA, ADJUNTA, PRINT;
+terminal String IDENT;
+terminal Double NUMERO;
+non terminal linea;
+non terminal ArrayList<ArrayList<Double>> exp, mat;
+non terminal Integer func, op;
+
+precedence left MAS, MENOS;
+precedence left POR, DIV;
+precedence left COMA, PYC;
+precedence left AP, AC;
+
+
+linea ::= PRINT AP exp:res CP PYC {: 
+            // System.out.println(" After print line: < " + res + " > "); 
+            print(res);
+        :} linea
+        | PRINT AP exp:res CP PYC {: 
+            // System.out.println(" After print line: < " + res + " > "); 
+            print(res);
+        :}
+        | IDENT:id ASIG exp:res PYC {: TablaSimbolos.insertar(id, Matrices.toArray(res)); :} linea
+        | IDENT:id ASIG exp:res PYC {: TablaSimbolos.insertar(id, Matrices.toArray(res)); :}
+        ;
+
+exp ::=   mat:m {: RESULT = checkMatrix(m); :}
+        | func:f AP exp:m1 CP {: RESULT = doFunction(f, m1); :}
+        | exp:m1 op:o exp:m2 {: RESULT = doOperation(o, m1, m2); :}
+        | AC CC {: System.out.print("Syntax error"); :}
+        ;
+
+mat ::=   AC mat:e CC {:
+            var m = newRow(e);
+            // System.out.println("After adding last row: < " + m + " > " );
+            RESULT = m;
+            // System.out.println("Before cleaning matrix: < " + mat + " > ");
+            mat = newMat();
+            // System.out.println("After cleaning matrix: < " + mat + " > ");
+        :}
+        | mat:e1 COMA {: RESULT = e1; :} mat:e2 {: RESULT = e2; :}
+        | mat:e1 PYC {: RESULT = newRow(e1); :} mat
+        | NUMERO:n {:
+            var m = addRowValue(mat, n);
+            RESULT = m;
+        :}
+        ;
+
+op ::=    MAS {: RESULT = 1; :}
+        | POR {: RESULT = 0; :}
+        ;
+
+func ::=  TRANSPUESTA   {: RESULT = 0; :}
+        | INVERSA       {: RESULT = 1; :}
+        | ADJUNTA       {: RESULT = 2; :}
+        ;
