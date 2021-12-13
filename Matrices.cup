@@ -25,18 +25,22 @@ action code {:
         try {
             double[][] m1 = Matrices.toArray(_m1);
             double[][] m2 = Matrices.toArray(_m2);
-            // System.out.print("<op> " + (op == 1 ? "MAS" : "POR") + " -> ");
-            // System.out.println("<m1> " + Matrices.toArrayList(m1) + " <m2> " + Matrices.toArrayList(m2));
+
             switch (op) {
+                case 2:
+                    op -= 2;
+                    m2 = Matrices.inversa(m2);
                 case 0:
                     result = Matrices.producto(m1, m2); 
                     break;
+                case 3:
+                    op -= 2;
+                    m2 = Matrices.producto(-1, m2);
                 case 1:
                     result = Matrices.suma(m1, m2); 
                     break;
             }
         } catch (ArrayIndexOutOfBoundsException e) {
-            // System.out.println(e.getMessage());
             printError(4+op);
         } finally {
             mat = newMat();
@@ -154,6 +158,8 @@ exp ::=   AC mat:m CC               {: RESULT = checkMatrix(newRow(m)); mat = ne
         | func:f AP exp:m1 CP       {: RESULT = doFunction(f, m1); :}
         | exp:m1 POR exp:m2         {: RESULT = doOperation(0, m1, m2); :}
         | exp:m1 MAS exp:m2         {: RESULT = doOperation(1, m1, m2); :}
+        | exp:m1 DIV exp:m2         {: RESULT = doOperation(2, m1, m2); :}
+        | exp:m1 MENOS exp:m2       {: RESULT = doOperation(3, m1, m2); :}
         | IDENT:n                   {: RESULT = Matrices.toArrayList(TablaSimbolos.buscar(n)); :}
         | AP exp:m CP               {: RESULT = m; :}
         | AC CC                     {: System.out.print("Syntax error"); :}
