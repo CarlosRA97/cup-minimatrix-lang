@@ -136,25 +136,82 @@ action code {:
 :};
 
 terminal ALL, CLL, AP, CP, AC, CC, COMA, PYC, ASIG, MAS, MENOS, POR, DIV, INVERSA, TRANSPUESTA, ADJUNTA, PRINT;
+terminal CONCATENA;
 terminal String IDENT;
 terminal Double NUMERO;
 non terminal linea;
 non terminal ArrayList<ArrayList<Double>> exp, mat, matll;
+non terminal ArrayList<Double> expVec, vec;
 non terminal Integer func;
+//IMPORTANTE
+terminal double[][] MATRIZ;
+terminal double[] VECTOR;
+
+non terminal double[][] expMatriz;
+non terminal double[] expVector;
+
+non terminal ArrayList<Double> listaNum;
+non terminal ArrayList<Double> vector;
+
+non terminal ArrayList<ArrayList<Double>> matriz;
+non terminal ArrayList<ArrayList<Double>> listaVector;
+
 
 precedence left MAS, MENOS;
 precedence left POR, DIV;
 precedence left COMA, PYC;
+precedence left IDENT;
+precedence left NUMERO;
+precedence left CONCATENA;
+precedence nonassoc ALL;
 
+ded ::= IDENT ASIG expMatriz:m
+    | IDENT ASIG expVector:v
+    ;
+
+expMatriz ::= expMatriz:e1 MAS expMatriz:e2
+    ;
+
+expVector ::= expVector:e1 MAS expVector:e2
+    ;
+
+vector ::= ALL listaNum CLL
+    ;
+
+listaNum ::= listaNum:l COMA NUMERO:n {: l.add(n); RESULT = l; :}
+    | NUMERO:n {: ArrayList<Double> l = new ArrayList<>(); l.add(n); RESULT = l; :}
+    ;
+
+matriz ::= ALL listaVector CLL
+    ;
+
+listaVector ::= listaVector:l COMA vector:v {: l.add(v); RESULT = l; :}
+    | vector:v {: ArrayList<ArrayList<Double>> l = new ArrayList(); l.add(v); RESULT = l; :}
+    ;
 
 linea ::= PRINT AP exp:res CP PYC   {: print(res); :} linea
         | PRINT AP exp:res CP PYC   {: print(res); :}
+        | PRINT AP expVec:res CP PYC {: Matrices.print(res); :} linea
+        | PRINT AP expVec:res CP PYC {: Matrices.print(res); :}
         | IDENT:id ASIG exp:res PYC {: TablaSimbolos.insertar(id, Matrices.toArray(res)); :} linea
         | IDENT:id ASIG exp:res PYC {: TablaSimbolos.insertar(id, Matrices.toArray(res)); :}
+        | IDENT:id ASIG expVec:res PYC {: TablaSimbolos.insertarVector(id, Matrices.toVector(res)); :} linea
+        | IDENT:id ASIG expVec:res PYC {: TablaSimbolos.insertarVector(id, Matrices.toVector(res)); :}
+        ;
+
+expVec ::= ALL vec:m CLL {: RESULT = m; System.out.print(RESULT); :}
+        | expVec:m1 CONCATENA expVec:m2 {: RESULT = Matrices.toArrayList(Matrices.concatena(Matrices.toVector(m1), Matrices.toVector(m2))); :}
+        | expVec:m1 MAS expVec:m2 {: RESULT = Matrices.toArrayList(Matrices.suma(Matrices.toVector(m1), Matrices.toVector(m2))); :}
+        | vec:v {: RESULT = v; :}
+        | IDENT:n {: RESULT = Matrices.toArrayList(TablaSimbolos.buscarVector(n)); System.out.print(RESULT); :}
+        ;
+
+vec ::=   vec:v1 COMA vec:v2 {: v1.addAll(v2); RESULT = v1; System.out.print(v1); :}
+        | NUMERO:n {: RESULT = new ArrayList<Double>(); RESULT.add(n); :}
         ;
 
 exp ::=   AC mat:m CC               {: RESULT = checkMatrix(newRow(m)); mat = newMat(); :}
-        | ALL matll:m CLL           {: RESULT = checkMatrix(m); mat = newMat(); :}
+        | ALL matll:m CLL           {: RESULT = checkMatrix(m); mat = newMat(); System.out.println(m); :}
         | func:f AP exp:m1 CP       {: RESULT = doFunction(f, m1); :}
         | exp:m1 POR exp:m2         {: RESULT = doOperation(0, m1, m2); :}
         | exp:m1 MAS exp:m2         {: RESULT = doOperation(1, m1, m2); :}
@@ -162,7 +219,7 @@ exp ::=   AC mat:m CC               {: RESULT = checkMatrix(newRow(m)); mat = ne
         | exp:m1 MENOS exp:m2       {: RESULT = doOperation(3, m1, m2); :}
         | IDENT:n                   {: RESULT = Matrices.toArrayList(TablaSimbolos.buscar(n)); :}
         | AP exp:m CP               {: RESULT = m; :}
-        | AC CC                     {: System.out.print("Syntax error"); :}
+        | IDENT:n AP NUMERO:n1 COMA NUMERO:n2 CP {: RESULT = Matrices.toArrayList(Matrices.subMatriz(TablaSimbolos.buscar(n), n1.intValue(), n2.intValue())); :}
         ;
 
 matll ::= matll:e1 COMA             {: RESULT = e1; :} matll:e2 {: RESULT = e2; :}
@@ -179,3 +236,7 @@ func ::=  TRANSPUESTA               {: RESULT = 0; :}
         | INVERSA                   {: RESULT = 1; :}
         | ADJUNTA                   {: RESULT = 2; :}
         ;
+
+num ::= MENOS NUMERO:n {: RESULT = -n; :}
+    | NUMERO:n {: RESULT = n; :}
+

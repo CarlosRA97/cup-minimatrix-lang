@@ -10,73 +10,12 @@ public class Matrices {
 	public final static String ERROR_ADJUNTA = "ERROR3: La operacion adjunta() requiere una matriz cuadrada";
 	public final static String ERROR_PROD    = "ERROR4: La operacion producto() requiere coincidencia de filas y columnas";
 	public final static String ERROR_SUMA    = "ERROR5: La operacion suma() requiere matrices de iguales dimensiones";
+	public final static String ERROR_FILAS_INSUF = "ERROR7: se quieren usar mas filas de las disponibles";
+    public final static String ERROR_COLUM_INSUF = "ERROR8: se quieren usar mas columnas de las disponibles";
 	
-	/** 
-	 * Devuelve la inversa de una matriz
-	 * @param matriz
-	 * @return
-	 */
-    public static double[][] inversa(double[][] matriz) {
-        double det=1/determinante(matriz);
-        double[][] nmatriz=adjunta(matriz);
-        nmatriz = producto(det,nmatriz);
-        return nmatriz;
-    }
-
-    /**
-     * Producto de un escalar por una matriz
-     * @param n
-     * @param matriz
-     */
-    public static double[][] producto(double n, double[][] matriz) {
-    	double[][]  salida = new double[matriz.length][matriz[0].length];
-        for(int i=0;i<matriz.length;i++)
-            for(int j=0;j<matriz[0].length;j++)
-                salida[i][j] = n*matriz[i][j];
-        return salida;
-    }
-
-    /**
-     * Producto de dos matrices
-     * @param matriz1
-     * @param matriz2
-     */
-    public static double[][] producto(double[][] matriz1, double[][] matriz2) {
-    	double[][] salida = new double[matriz1.length][matriz2[0].length];
-        for(int i=0;i<matriz1.length;i++)
-            for(int j=0;j<matriz2[0].length;j++) {
-            	salida[i][j] = 0;
-        		for(int k=0;k<matriz1[0].length; k++) 
-        			salida[i][j] += matriz1[i][k] * matriz2[k][j];
-            }
-        return salida;			
-    }
-
-    /**
-     * Suma de un escalar por una matriz
-     * @param n
-     * @param matriz
-     */
-    public static double[][] suma(double n, double[][] matriz) {
-    	double[][] salida = new double[matriz.length][matriz[0].length];
-        for(int i=0;i<matriz.length;i++)
-            for(int j=0;j<matriz[0].length;j++)
-                salida[i][j] = n+matriz[i][j];
-        return salida;
-    }
-
-    /**
-     * Suma de dos matrices
-     * @param matriz1
-     * @param matriz2
-     */
-    public static double[][] suma(double[][] matriz1, double[][] matriz2) {
-    	double[][] salida = new double[matriz1.length][matriz1[0].length];
-        for(int i=0;i<matriz1.length;i++)
-            for(int j=0;j<matriz2[0].length;j++) 
-            	salida[i][j] = matriz1[i][j] + matriz2[i][j];
-        return salida;			
-    }
+    /* ********************************************* */
+    /*   OPERACIONES CON MATRICES                    */
+    /* ********************************************* */    
 
     /** Matriz adjunta de otra matriz
      * @param matriz
@@ -163,12 +102,297 @@ public class Matrices {
         return suma;
     }
 
+    /** 
+	 * Devuelve la inversa de una matriz
+	 * @param matriz
+	 * @return
+	 */
+    public static double[][] inversa(double[][] matriz) {
+        double det=1/determinante(matriz);
+        double[][] nmatriz=adjunta(matriz);
+        nmatriz = producto(det,nmatriz);
+        return nmatriz;
+    }
+
+    /* ********************************************* */
+    /*   CONCATENACION                               */
+    /* ********************************************* */    
+   
+    /**
+     * Concatena un escalar y un vector
+     * @param n
+     * @param matriz
+     */
+    public static double[] concatena(double n, double[] vector) {
+    	double[] salida = new double[vector.length+1];
+    	salida[0] = n;
+        for(int i=0;i<vector.length;i++) {
+            salida[i+1] = vector[i];
+        }
+        return salida;			
+    }
+    /**
+     * Concatena un vector y un escalar
+     * @param n
+     * @param matriz
+     */
+    public static double[] concatena(double[] vector, double n) {
+    	double[] salida = new double[vector.length+1];
+        for(int i=0;i<vector.length;i++) {
+            salida[i] = vector[i];
+        }
+    	salida[vector.length] = n;
+        return salida;			
+    }
+    /**
+     * Concatena dos vectores
+     * @param n
+     * @param matriz
+     */
+    public static double[] concatena(double[] vector1, double[] vector2) {
+    	double[] salida = new double[vector1.length+vector2.length];
+        for(int i=0;i<vector1.length;i++) {
+            salida[i] = vector1[i];
+        }
+        for(int i=0;i<vector2.length;i++) {
+            salida[i+vector1.length] = vector2[i];
+        }
+        return salida;			
+    }
+
+    /**
+     * Concatena un vector columna al final de la matriz
+     * concatena ( {{1,2},{3,4}} , {5,6} ) = {{1,2,5},{3,4,6}}
+     * @param matriz
+     * @param vector
+     */
+    public static double[][] concatena(double[][] matriz, double[] vector) {
+    	double[][]  salida = new double[matriz.length][matriz[0].length+1];
+        for(int i=0;i<matriz.length;i++) {
+        	for(int j=0;j<matriz[0].length; j++) {
+        		salida[i][j] = matriz[i][j];
+        	}
+        	salida[i][matriz[0].length] = vector[i];
+        }
+        return salida;			
+    }
+
+    /**
+     * Concatena una columna al final de la matriz, con el valor constante n
+     * Se usa para añadir 0's al final de una matriz, por ejemplo
+     * concatena ( {{1,2},{3,4}} , 0 ) = {{1,2,0},{3,4,0}}
+     * @param n
+     * @param matriz
+     */
+    public static double[][] concatena(double[][] matriz, double n) {
+    	double[][]  salida = new double[matriz.length][matriz[0].length+1];
+        for(int i=0;i<matriz.length;i++) {
+        	for(int j=0;j<matriz[0].length; j++) {
+        		salida[i][j] = matriz[i][j];
+        	}
+        	salida[i][matriz[0].length] = n;
+        }
+        return salida;			
+    }
+    
+    // Igual a la anterior
+    public static ArrayList<ArrayList<Double>> concatena(ArrayList<ArrayList<Double>> arrayList, Double n) {
+    	  for(int i=0; i<arrayList.size(); i++) {
+    		  arrayList.get(i).add(n);
+    	  }
+    	  return arrayList;
+    }
+    
+    
+    /* ********************************************* */
+    /*   COMPLETAR                                   */
+    /* ********************************************* */    
+
+    /**
+     * Completa una matriz con ceros hasta alcanzar la dimension n1 x n2
+     * completar ( {{1,2,3},{4,5},{6}} , 4, 3 ) = {{1,2,3,0},{4,5,0},{6,0,0},{0,0,0}}
+     * @param n
+     * @param matriz
+     */
+    public static double[][] completar(double[][] matriz, int n1, int n2) {
+    	double[][] salida = new double[n1][n2];
+    	int i;
+    	for(i=0;i<Math.min(n1, matriz.length); i++) {
+    		int j;
+    		for(j=0; j<Math.min(n2, matriz[0].length); j++) {
+        		salida[i][j] = matriz[i][j];
+    		}
+    		for(j=n2; j<n2; j++) {
+        		salida[i][j] = 0;
+    		}
+    	}
+		for(i=n1; i<n1; i++) {
+    		for(int j=0; j<n2; j++) {
+        		salida[i][j] = 0;
+    		}
+		}
+		return salida;
+    }
+
+    // Igual al anterior
+    public static ArrayList<ArrayList<Double>> concatena(ArrayList<ArrayList<Double>> arrayList, int n1, int n2) {
+    	double[][] m = toArray(arrayList);
+    	m = completar(m, n1,n2);
+  	    return toArrayList(m);
+  }
+
+   
+    /* ********************************************* */
+    /*   PRODUCTO                                    */
+    /* ********************************************* */    
+
+    /**
+     * Producto de un escalar por un vector
+     * @param n
+     * @param matriz
+     */
+    public static double[] producto(double n, double[] vector) {
+    	double[] salida = new double[vector.length];
+        for(int i=0;i<vector.length;i++) {
+            salida[i] = n * vector[i];
+        }
+        return salida;			
+    }
+
+    /**
+     * Producto de un escalar por una matriz
+     * @param n
+     * @param matriz
+     */
+    public static double[][] producto(double n, double[][] matriz) {
+    	double[][]  salida = new double[matriz.length][matriz[0].length];
+        for(int i=0;i<matriz.length;i++)
+            for(int j=0;j<matriz[0].length;j++)
+                salida[i][j] = n*matriz[i][j];
+        return salida;
+    }
+
+    /**
+     * Producto de dos vectores
+     * @param matriz1
+     * @param matriz2
+     */
+    public static double[][] producto(double[] vector1, double[] vector2) {
+    	return producto(toMatriz(vector1), transpuesta(toMatriz(vector2)));
+    }
+
+
+    /**
+     * Producto de un vector por una matriz
+     * @param vector
+     * @param matriz
+     */
+    public static double[][] producto(double[] vector, double[][] matriz) {
+    	return producto(toMatriz(vector), matriz);
+    }
+
+    /**
+     * Producto de una matriz por un vector
+     * @param matriz
+     * @param vector
+     */
+    public static double[][] producto(double[][] matriz, double[] vector) {
+    	return producto(matriz, transpuesta(toMatriz(vector)));
+    }
+
+    /**
+     * Producto de dos matrices
+     * @param matriz1
+     * @param matriz2
+     */
+    public static double[][] producto(double[][] matriz1, double[][] matriz2) {
+    	double[][] salida = new double[matriz1.length][matriz2[0].length];
+        for(int i=0;i<matriz1.length;i++)
+            for(int j=0;j<matriz2[0].length;j++) {
+            	salida[i][j] = 0;
+        		for(int k=0;k<matriz1[0].length; k++) 
+        			salida[i][j] += matriz1[i][k] * matriz2[k][j];
+            }
+        return salida;			
+    }
+
+    
+    /* ********************************************* */
+    /*   SUMA                                        */
+    /* ********************************************* */    
+    
+    /**
+     * Suma de dos una constante a un vector
+     * @param n
+     * @param vector2
+     */
+    public static double[] suma(double n, double[] vector) {
+    	double[] salida = new double[vector.length];
+        for(int i=0;i<vector.length;i++) {
+            salida[i] = n + vector[i];
+        }
+        return salida;			
+    }
+
+    /**
+     * Suma de un escalar por una matriz
+     * @param n
+     * @param matriz
+     */
+    public static double[][] suma(double n, double[][] matriz) {
+    	double[][] salida = new double[matriz.length][matriz[0].length];
+        for(int i=0;i<matriz.length;i++)
+            for(int j=0;j<matriz[0].length;j++)
+                salida[i][j] = n+matriz[i][j];
+        return salida;
+    }
+
+    /**
+     * Suma de dos vectores
+     * @param vector1
+     * @param vector2
+     */
+    public static double[] suma(double[] vector1, double[] vector2) {
+    	double[] salida = new double[vector1.length];
+        for(int i=0;i<vector1.length;i++) {
+            salida[i] = vector1[i] + vector2[i];
+        }
+        return salida;			
+    }
+    
+    /**
+     * Suma de dos matrices
+     * @param matriz1
+     * @param matriz2
+     */
+    public static double[][] suma(double[][] matriz1, double[][] matriz2) {
+    	double[][] salida = new double[matriz1.length][matriz1[0].length];
+        for(int i=0;i<matriz1.length;i++)
+            for(int j=0;j<matriz2[0].length;j++) 
+            	salida[i][j] = matriz1[i][j] + matriz2[i][j];
+        return salida;			
+    }
+    
+    /* ********************************************* */
+    /*   PRINT                                       */
+    /* ********************************************* */    
+    
     /**
      * Imprime un escalar
      * @param n
      */
     public static void print(double n) {
-    	System.out.println(String.format("%4.2f", n));
+    	System.out.println(String.format("%7.2f", n));
+    }
+    
+    /**
+     * Imprime un vector
+     * @param vector
+     */
+    public static void print(double[] vector) {
+        for(int j=0; j<vector.length; j++)
+            System.out.print(String.format("%7.2f",vector[j]));
+        System.out.println();
     }
     
     /**
@@ -184,11 +408,50 @@ public class Matrices {
     }
 
     /**
-     * Imprime una matriz
+     * Imprime un vector o una matriz
      * @param matriz
      */
-    public static void print(ArrayList<ArrayList<Double>> arrayList) {
-    	print(toArray(arrayList));
+    public static void print(ArrayList arrayList) {
+    	if (arrayList!=null && !arrayList.isEmpty()) {
+        	Object x = arrayList.get(0);
+        	if (arrayList.get(0) instanceof Double) {
+            	print(toVector(arrayList));
+        	} else {
+            	print(toArray(arrayList));
+        	}
+    	}
+    }
+
+
+    /* ********************************************* */
+    /*   AUXILIARES                                  */
+    /* ********************************************* */    
+    
+    
+    /**
+     * Convierte un vector en una matriz de 1 x n
+     * @param vector
+     */
+    public static double[][] toMatriz(double[] vector) {
+	    double[][] matriz = new double[1][vector.length];
+	    for(int i=0; i<vector.length; i++) {
+	        matriz[0][i] = vector[i];
+	    }
+	    return matriz;
+    }
+
+    /**
+     * Dimension de un vector
+     * @param vector
+     */
+    public static int dim(double[] vector) {
+    	return vector.length;
+    }
+    public static int filas(double[] vector) {
+    	return vector.length;
+    }
+    public static int columnas(double[] vector) {
+    	return vector.length;
     }
 
     /**
@@ -213,17 +476,47 @@ public class Matrices {
      */
     public static double[][] toArray(ArrayList<ArrayList<Double>> arrayList) {
     	int nFilas = arrayList.size();
-    	int nColumnas = arrayList.get(0).size();
-    	double[][] salida = new double[nFilas][nColumnas];
+    	int maxColumnas = 0;
     	for(int i=0; i<nFilas; i++) {
     		ArrayList<Double> fila = arrayList.get(i);
-    		for(int j=0; j<nColumnas; j++) {
+        	maxColumnas = Math.max(maxColumnas,fila.size());
+    	}
+    	double[][] salida = new double[nFilas][maxColumnas];
+    	for(int i=0; i<nFilas; i++) {
+    		ArrayList<Double> fila = arrayList.get(i);
+        	int nColumnas = fila.size();
+        	for(int j=0; j<nColumnas; j++) {
     			salida[i][j] = fila.get(j);
     		}
     	}
     	return salida;
     }
     
+    /**
+     * Convierte un ArrayList<Double> en una vector de tipo double[]
+     * @param arrayList
+     */
+    public static double[] toVector(ArrayList<Double> arrayList) {
+    	int n = arrayList.size();
+    	double[] salida = new double[n];
+		for(int j=0; j<n; j++) {
+			salida[j] = arrayList.get(j);
+		}
+    	return salida;
+    }
+    
+    /**
+     * Convierte un un vector de tipo double[] en un ArrayList<Double>
+     * @param vector
+     */
+    public static ArrayList<Double> toArrayList(double[] vector) {
+    	ArrayList<Double> arrayList = new ArrayList<Double>();
+    	for(int i=0; i<vector.length; i++) {
+    		arrayList.add(vector[i]);
+    	}
+    	return arrayList;
+    }
+
     /**
      * Convierte un una matriz de tipo double[][] en un ArrayList<ArrayList<Double>>
      * @param matriz
@@ -242,6 +535,37 @@ public class Matrices {
     	return arrayList;
     }
     
+    
+    /**
+     * Devuelve una submatriz de n1 x n2 (esquina superior izquierda)
+     * @param matriz
+     */
+    public static double[][] subMatriz(double[][] matriz, int n1, int n2) {
+    	double[][] salida = new double[n1][n2];
+    	for(int i=0; i<n1; i++) {
+    		for(int j=0; j<n2; j++) {
+    			salida[i][j] = matriz[i][j];
+    		}
+    	}
+    	return salida;
+    }
+    
+    /**
+     * Devuelve un subvector con los n primeros elementos
+     * @param matriz
+     */
+    public static double[] subVector(double[] vector, int n) {
+    	double[] salida = new double[n];
+    	for(int i=0; i<n; i++) {
+			salida[i] = vector[i];
+    	}
+    	return salida;
+    }
+
+    /* ********************************************* */
+    /*   MAIN                                        */
+    /* ********************************************* */    
+
     public static boolean DEBUG = false;
     
     public static void main(String argv[]) {    
